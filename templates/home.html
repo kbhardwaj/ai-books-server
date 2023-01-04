@@ -1,0 +1,140 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <h1>{{title}}</h1>
+    <p>{{description}}</p>
+    <p>{{message}}</p>
+    <div>
+        <div>
+            <form id="myForm">
+                A <input type="number" max="10" name="age"> year old little 
+                <select name="gender" id="gender-select" name="gender">
+                    <option value="">--Girl or Boy--</option>
+                    <option value="girl">girl</option>
+                    <option value="boy">boy</option>
+                </select> named <input type="text" maxlength="20" name="name"> who shows great 
+                <select class="child-traits" multiple size="3" name="childAttributes">
+                    <option value="">--Choose a trait--</option>
+                    <option value="bravery">bravery</option>
+                    <option value="courage">courage</option>
+                    <option value="kindness">kindness</option>
+                    <option value="intelligence">intelligence</option>
+                    <option value="honesty">honesty</option>
+                    <option value="loyalty">loyalty</option>
+                    <option value="generosity">generosity</option>
+                    <option value="humility">humility</option>
+                    <option value="patience">patience</option>
+                    <option value="perseverance">perseverance</option>
+                    <option value="self-control">self-control</option>
+                    <option value="self-discipline">self-discipline</option>
+                    <option value="self-respect">self-respect</option>
+                    <option value="selflessness">selflessness</option>
+                    <option value="trustworthiness">trustworthiness</option>
+                </select>
+                in this story about 
+                <select class="story-traits" multiple size="3" name="storyAttributes">
+                    <option value="">--Choose a story attribute--</option>
+                    <option value="adventure">adventure</option>
+                    <option value="friendship">friendship</option>
+                    <option value="love">love</option>
+                    <option value="family">family</option>
+                    <option value="happiness">happiness</option>
+                    <option value="fun">fun</option>
+                    <option value="learning">learning</option>
+                    <option value="hard work">hard work</option>
+                    <option value="motivation">motivation</option>
+                    <option value="life">life</option>
+                    <option value="self worth">self worth</option>
+                    <option value="success">success</option>
+                    <option value="inspiration">inspiration</option>
+                    <option value="overcoming obstacles">overcoming obstacles</option>
+                    <option value="perseverance">perseverance</option>
+                    <option value="hope">hope</option>
+                    <option value="optimism">optimism</option>
+                    <option value="taking action">taking action</option>
+                </select>.
+                <input type="submit" value="Go">
+            </form>
+        </div>
+
+        <div id="storyPreview"></div>
+
+        <!-- loop through sentences -->
+        {% if storyChunks %}
+            {% for chunk in storyChunks %}
+                <div>
+                    <p>{{chunk.sentence}}</p>
+                    {% if chunk.image %}
+                        <img src="{{chunk.image}}" alt="image" />
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            let childTraitsSelect = new vanillaSelectBox("select.child-traits",{
+                search: true,
+                maxSelect: 3,
+            });
+            let storyTraitsSelect = new vanillaSelectBox("select.story-traits",{
+                search: true,
+                maxSelect: 3,
+            });
+            storyTraitsSelect.enable();
+
+            $("#myForm").submit(function(e){
+                e.preventDefault();
+                const data = $('#myForm').serialize();
+                $.ajax({
+                    url: '/submit-story-request',
+                    type: 'post',
+                    data,
+                    success: function({ hashed, story }){
+                        updateStoryPreview(hashed, story);
+                    }
+                });
+            });
+        });
+
+        function myFunction() {
+            // Get the text field
+            var copyText = document.getElementById("myInput");
+
+            // Select the text field
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // For mobile devices
+
+            // Copy the text inside the text field
+            navigator.clipboard.writeText(copyText.value);
+
+            // Alert the copied text
+            // alert("Copied the text: " + copyText.value);
+        }
+
+
+        // add inner html to story preview
+        function updateStoryPreview(hashed, story){
+            let storyPreview = document.getElementById('storyPreview');
+
+            const inputHtml = document.createElement('input');
+            inputHtml.setAttribute('type', 'text');
+            inputHtml.setAttribute('value', `/story/${hashed}`);
+            inputHtml.setAttribute('id', 'myInput');
+            inputHtml.setAttribute('style', 'cursor:pointer');
+            inputHtml.setAttribute('readonly', true);
+            inputHtml.setAttribute('onclick', 'myFunction()');
+
+            const innerHtml = document.createElement('h3');
+            innerHtml.innerHTML = 'Copy this path: ';
+            innerHtml.appendChild(inputHtml);
+            innerHtml.innerHTML += '. In a few minutes your story will be ready, and in the meantime, here\'s the text only version:';
+            storyPreview.appendChild(innerHtml);
+            
+            const storyParagraph = document.createElement('p');
+            storyParagraph.innerText = story;
+            storyPreview.appendChild(storyParagraph);
+        }
+    </script>
+{% endblock %}
